@@ -60,6 +60,7 @@ import {
   importAccount,
   exportAccount,
   deleteSubplebbit,
+  deleteComment,
 } from './stores/accounts/accounts-actions'
 
 // states
@@ -125,6 +126,7 @@ export {
   importAccount,
   exportAccount,
   deleteSubplebbit,
+  deleteComment,
   // states
   useClientsStates,
   useSubplebbitsStates,

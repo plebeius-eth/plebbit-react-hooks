@@ -596,3 +596,7 @@ export type ChainProvider = {
   urls?: string[]
 }
 export type ChainProviders = {[chainTicker: string]: ChainProvider}
+
+export interface DeleteCommentOptions extends Options {
+  accountComment: AccountComment
+}

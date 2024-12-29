@@ -19,13 +19,12 @@ import {
   PublishCommentModerationOptions,
   PublishSubplebbitEditOptions,
   CreateSubplebbitOptions,
-  Subplebbits,
   AccountComment,
+  DeleteCommentOptions,
 } from '../../types'
 import * as accountsActionsInternal from './accounts-actions-internal'
 import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions} from './utils'
 import utils from '../../lib/utils'
-import {useAccountId} from '../../hooks/accounts'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
   // add to database first to init the account
@@ -584,8 +583,23 @@ export const publishComment = async (publishCommentOptions: PublishCommentOption
   return createdAccountComment
 }
 
-export const deleteComment = async (commentCidOrAccountCommentIndex: string | number, accountName?: string) => {
-  throw Error('TODO: not implemented')
+export const deleteComment = async ({accountComment}: DeleteCommentOptions) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`)
+
+  accountsStore.setState(({accountsComments}) => {
+    const accountComments = [...(accountsComments[accountComment.accountId] || [])]
+    if (!accountComments[accountComment.index]) {
+      return {}
+    }
+
+    accountComments[accountComment.index] = {
+      ...accountComment,
+      accountDeleted: true,
+    }
+
+    return {accountsComments: {...accountsComments, [accountComment.accountId]: accountComments}}
+  })
 }
 
 export const publishVote = async (publishVoteOptions: PublishVoteOptions, accountName?: string) => {

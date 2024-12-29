@@ -18,6 +18,7 @@ import {
   useSubplebbit,
   usePubsubSubscribe,
   setPlebbitJs,
+  deleteComment,
 } from '../..'
 import commentsStore from '../../stores/comments'
 import * as accountsActions from '../../stores/accounts/accounts-actions'
@@ -2418,6 +2419,24 @@ describe('accounts', () => {
       expect(Object.keys(rendered.result.current.editedComment.succeededEdits).length).toBe(1)
       expect(Object.keys(rendered.result.current.editedComment.pendingEdits).length).toBe(0)
       expect(Object.keys(rendered.result.current.editedComment.failedEdits).length).toBe(0)
+    })
+  })
+
+  describe('deleteComment', () => {
+    it('should delete a comment and update the state', async () => {
+      const accountComment = {index: 0, accountId: 'test-account-id', content: 'Test comment'}
+      const initialState = {
+        accountsComments: {
+          'test-account-id': [accountComment],
+        },
+      }
+
+      accountsStore.setState(initialState)
+
+      await deleteComment({accountComment})
+
+      const state = accountsStore.getState()
+      expect(state.accountsComments['test-account-id'][0].accountDeleted).toBe(true)
     })
   })
 })
