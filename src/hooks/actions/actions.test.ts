@@ -517,6 +517,53 @@ describe('actions', () => {
       expect(typeof onChallengeVerification.mock.calls[0][1].timestamp).toBe('number')
     })
 
+    test(`can abandon publishing`, async () => {
+      // mock the comment publish to error out immediately like in the error test
+      const commentPublish = Comment.prototype.publish
+      Comment.prototype.publish = async function () {
+        // Set state to publishing first
+        this.emit('publishingstatechange', 'publishing-challenge-request')
+        this.emit('publishingstatechange', 'waiting-challenge-answers')
+
+        // Then emit error and throw
+        this.emit('error', new Error('User abandoned publishing'))
+        throw new Error('User abandoned publishing')
+      }
+
+      const onError = vi.fn()
+      const publishCommentOptions = {
+        subplebbitAddress: '12D3KooW... test',
+        parentCid: 'Qm... test',
+        content: 'test content for abandon',
+        onError,
+      }
+      rendered.rerender(publishCommentOptions)
+
+      // wait for ready
+      await waitFor(() => rendered.result.current.state === 'ready')
+      expect(rendered.result.current.state).toBe('ready')
+      expect(rendered.result.current.error).toBe(undefined)
+
+      // publish
+      await act(async () => {
+        await rendered.result.current.publishComment()
+      })
+
+      // wait for error
+      await waitFor(() => rendered.result.current.errors.length === 2)
+      expect(rendered.result.current.state).toBe('waiting-challenge-answers')
+      expect(rendered.result.current.error?.message).toBe('User abandoned publishing')
+      expect(rendered.result.current.errors[0].message).toBe('User abandoned publishing')
+      expect(rendered.result.current.errors[1].message).toBe('User abandoned publishing')
+
+      // check callback
+      expect(onError).toHaveBeenCalled()
+      expect(onError.mock.calls[0][0].message).toBe('User abandoned publishing')
+
+      // restore mock
+      Comment.prototype.publish = commentPublish
+    })
+
     test(`can error`, async () => {
       // mock the comment publish to error out
       const commentPublish = Comment.prototype.publish

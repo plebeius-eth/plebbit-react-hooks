@@ -203,6 +203,43 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
     }
   }
 
+  const abandon = () => {
+    if (!index) {
+      return // Can't abandon if publishing hasn't started
+    }
+
+    const abandonError = new Error('User abandoned publishing')
+
+    try {
+      // First set the state to failed
+      setPublishingState('failed')
+
+      // Then mark the comment as failed in the store
+      accountsActions.markAccountCommentAsFailed(
+        index,
+        {
+          reason: 'User abandoned publishing',
+          error: abandonError,
+        },
+        accountName
+      )
+
+      // Clear challenge-related state
+      setChallenge(undefined)
+      setChallengeVerification(undefined)
+      setPublishChallengeAnswers(undefined)
+
+      // Set the error
+      setErrors((errors) => [...errors, abandonError])
+
+      // Call onError callback if provided
+      onError?.(abandonError)
+    } catch (e: any) {
+      setErrors((errors) => [...errors, e])
+      onError?.(e)
+    }
+  }
+
   return useMemo(
     () => ({
       index,
@@ -210,11 +247,12 @@ export function usePublishComment(options?: UsePublishCommentOptions): UsePublis
       challengeVerification,
       publishComment,
       publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+      abandon,
       state: publishingState || initialState,
       error: errors[errors.length - 1],
       errors,
     }),
-    [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]
+    [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers, abandon]
   )
 }
 

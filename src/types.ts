@@ -309,6 +309,7 @@ export interface UsePublishCommentResult extends Result {
   challengeVerification: ChallengeVerification | undefined
   publishComment(): Promise<void>
   publishChallengeAnswers(challengeAnswers: string[]): Promise<void>
+  abandon: () => void
 }
 
 // usePublishVote(options): result

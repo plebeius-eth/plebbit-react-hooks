@@ -25,6 +25,7 @@ import {
 import * as accountsActionsInternal from './accounts-actions-internal'
 import {getAccountSubplebbits, getCommentCidsToAccountsComments, fetchCommentLinkDimensions} from './utils'
 import utils from '../../lib/utils'
+import {useAccountId} from '../../hooks/accounts'
 
 const addNewAccountToDatabaseAndState = async (newAccount: Account) => {
   // add to database first to init the account
@@ -887,4 +888,33 @@ export const deleteSubplebbit = async (subplebbitAddress: string, accountName?: 
 
   await subplebbitsStore.getState().deleteSubplebbit(subplebbitAddress, account)
   log('accountsActions.deleteSubplebbit', {subplebbitAddress})
+}
+
+export const markAccountCommentAsFailed = async (commentIndex: number, failureDetails: {reason: string; error: Error}, accountName?: string) => {
+  const {accounts, accountNamesToAccountIds, activeAccountId} = accountsStore.getState()
+  assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`)
+  let accountId = activeAccountId
+  if (accountName) {
+    accountId = accountNamesToAccountIds[accountName]
+  }
+  if (!accountId) {
+    throw Error(`account '${accountName}' not found`)
+  }
+
+  accountsStore.setState(({accountsComments}) => {
+    const accountComments = [...(accountsComments[accountId] || [])]
+    const accountComment = accountComments[commentIndex]
+    if (!accountComment) {
+      return {}
+    }
+
+    accountComments[commentIndex] = {
+      ...accountComment,
+      state: 'failed',
+      reason: failureDetails.reason,
+      errors: [...(accountComment.errors || []), failureDetails.error],
+    }
+
+    return {accountsComments: {...accountsComments, [accountId]: accountComments}}
+  })
 }
