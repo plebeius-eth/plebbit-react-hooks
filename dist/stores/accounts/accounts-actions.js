@@ -516,8 +516,17 @@ export const publishComment = (publishCommentOptions, accountName) => __awaiter(
     }
     return createdAccountComment;
 });
-export const deleteComment = (commentCidOrAccountCommentIndex, accountName) => __awaiter(void 0, void 0, void 0, function* () {
-    throw Error('TODO: not implemented');
+export const deleteComment = ({ accountComment }) => __awaiter(void 0, void 0, void 0, function* () {
+    const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`);
+    accountsStore.setState(({ accountsComments }) => {
+        const accountComments = [...(accountsComments[accountComment.accountId] || [])];
+        if (!accountComments[accountComment.index]) {
+            return {};
+        }
+        accountComments[accountComment.index] = Object.assign(Object.assign({}, accountComment), { accountDeleted: true });
+        return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [accountComment.accountId]: accountComments }) };
+    });
 });
 export const publishVote = (publishVoteOptions, accountName) => __awaiter(void 0, void 0, void 0, function* () {
     const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
@@ -768,4 +777,24 @@ export const deleteSubplebbit = (subplebbitAddress, accountName) => __awaiter(vo
     }
     yield subplebbitsStore.getState().deleteSubplebbit(subplebbitAddress, account);
     log('accountsActions.deleteSubplebbit', { subplebbitAddress });
+});
+export const markAccountCommentAsFailed = (commentIndex, failureDetails, accountName) => __awaiter(void 0, void 0, void 0, function* () {
+    const { accounts, accountNamesToAccountIds, activeAccountId } = accountsStore.getState();
+    assert(accounts && accountNamesToAccountIds && activeAccountId, `can't use accountsStore.accountsActions before initialized`);
+    let accountId = activeAccountId;
+    if (accountName) {
+        accountId = accountNamesToAccountIds[accountName];
+    }
+    if (!accountId) {
+        throw Error(`account '${accountName}' not found`);
+    }
+    accountsStore.setState(({ accountsComments }) => {
+        const accountComments = [...(accountsComments[accountId] || [])];
+        const accountComment = accountComments[commentIndex];
+        if (!accountComment) {
+            return {};
+        }
+        accountComments[commentIndex] = Object.assign(Object.assign({}, accountComment), { state: 'failed', reason: failureDetails.reason, errors: [...(accountComment.errors || []), failureDetails.error] });
+        return { accountsComments: Object.assign(Object.assign({}, accountsComments), { [accountId]: accountComments }) };
+    });
 });

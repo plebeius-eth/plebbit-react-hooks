@@ -180,16 +180,44 @@ export function usePublishComment(options) {
             (_b = publishCommentOptions.onError) === null || _b === void 0 ? void 0 : _b.call(publishCommentOptions, e);
         }
     });
+    const abandon = () => {
+        if (!index) {
+            return; // Can't abandon if publishing hasn't started
+        }
+        const abandonError = new Error('User abandoned publishing');
+        try {
+            // First set the state to failed
+            setPublishingState('failed');
+            // Then mark the comment as failed in the store
+            accountsActions.markAccountCommentAsFailed(index, {
+                reason: 'User abandoned publishing',
+                error: abandonError,
+            }, accountName);
+            // Clear challenge-related state
+            setChallenge(undefined);
+            setChallengeVerification(undefined);
+            setPublishChallengeAnswers(undefined);
+            // Set the error
+            setErrors((errors) => [...errors, abandonError]);
+            // Call onError callback if provided
+            onError === null || onError === void 0 ? void 0 : onError(abandonError);
+        }
+        catch (e) {
+            setErrors((errors) => [...errors, e]);
+            onError === null || onError === void 0 ? void 0 : onError(e);
+        }
+    };
     return useMemo(() => ({
         index,
         challenge,
         challengeVerification,
         publishComment,
         publishChallengeAnswers: publishChallengeAnswers || publishChallengeAnswersNotReady,
+        abandon,
         state: publishingState || initialState,
         error: errors[errors.length - 1],
         errors,
-    }), [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers]);
+    }), [publishingState, initialState, errors, index, challenge, challengeVerification, options, accountName, publishChallengeAnswers, abandon]);
 }
 export function usePublishVote(options) {
     assert(!options || typeof options === 'object', `usePublishVote options argument '${options}' not an object`);

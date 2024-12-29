@@ -188,6 +188,7 @@ export interface UsePublishCommentResult extends Result {
     challengeVerification: ChallengeVerification | undefined;
     publishComment(): Promise<void>;
     publishChallengeAnswers(challengeAnswers: string[]): Promise<void>;
+    abandon: () => void;
 }
 export interface UsePublishVoteOptions extends Options {
     onChallenge?(challenge: Challenge, comment?: Comment): Promise<void>;
@@ -496,4 +497,7 @@ export type ChainProvider = {
 export type ChainProviders = {
     [chainTicker: string]: ChainProvider;
 };
+export interface DeleteCommentOptions extends Options {
+    accountComment: AccountComment;
+}
 export {};

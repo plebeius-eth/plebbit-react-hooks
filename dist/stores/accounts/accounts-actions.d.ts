@@ -1,4 +1,4 @@
-import { Account, PublishCommentOptions, PublishVoteOptions, PublishCommentEditOptions, PublishCommentModerationOptions, PublishSubplebbitEditOptions, CreateSubplebbitOptions } from '../../types';
+import { Account, PublishCommentOptions, PublishVoteOptions, PublishCommentEditOptions, PublishCommentModerationOptions, PublishSubplebbitEditOptions, CreateSubplebbitOptions, DeleteCommentOptions } from '../../types';
 export declare const createAccount: (accountName?: string) => Promise<void>;
 export declare const deleteAccount: (accountName?: string) => Promise<void>;
 export declare const setActiveAccount: (accountName: string) => Promise<void>;
@@ -13,10 +13,14 @@ export declare const unblockAddress: (address: string, accountName?: string) => 
 export declare const blockCid: (cid: string, accountName?: string) => Promise<void>;
 export declare const unblockCid: (cid: string, accountName?: string) => Promise<void>;
 export declare const publishComment: (publishCommentOptions: PublishCommentOptions, accountName?: string) => Promise<any>;
-export declare const deleteComment: (commentCidOrAccountCommentIndex: string | number, accountName?: string) => Promise<never>;
+export declare const deleteComment: ({ accountComment }: DeleteCommentOptions) => Promise<void>;
 export declare const publishVote: (publishVoteOptions: PublishVoteOptions, accountName?: string) => Promise<void>;
 export declare const publishCommentEdit: (publishCommentEditOptions: PublishCommentEditOptions, accountName?: string) => Promise<void>;
 export declare const publishCommentModeration: (publishCommentModerationOptions: PublishCommentModerationOptions, accountName?: string) => Promise<void>;
 export declare const publishSubplebbitEdit: (subplebbitAddress: string, publishSubplebbitEditOptions: PublishSubplebbitEditOptions, accountName?: string) => Promise<void>;
 export declare const createSubplebbit: (createSubplebbitOptions: CreateSubplebbitOptions, accountName?: string) => Promise<any>;
 export declare const deleteSubplebbit: (subplebbitAddress: string, accountName?: string) => Promise<void>;
+export declare const markAccountCommentAsFailed: (commentIndex: number, failureDetails: {
+    reason: string;
+    error: Error;
+}, accountName?: string) => Promise<void>;
